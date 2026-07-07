@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Smart Farmers – Agri Marketplace</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='80' font-weight='bold' font-family='Arial' fill='%23FF9900'>S</text></svg>" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header-top">
+        <div class="container">
+            <a href="#" class="logo" onclick="navigateTo('home')">
+                <svg viewBox="0 0 100 100"><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="80" font-weight="bold" font-family="Arial" fill="#FF9900">S</text></svg>
+                <span>mart</span>Farmers
+            </a>
+            <div class="delivery-location" onclick="getLocation()">
+                <span class="delivery-label">Deliver to</span>
+                <span class="delivery-place" id="headerLocation">Online</span>
+                <span class="delivery-region">Kampala 0000</span>
+            </div>
+            <div class="header-search">
+                <select id="searchCategory">
+                    <option value="all">All</option>
+                    <option value="seeds">Seeds</option>
+                    <option value="fertilizer">Fertilizers</option>
+                    <option value="pesticide">Crop Protection</option>
+                    <option value="tools">Tools</option>
+                    <option value="consultants">Consultants</option>
+                    <option value="vendors">Vendors</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="Search SmartFarmers" />
+                <button onclick="performSearch()"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="header-actions">
+                <div class="language-selector"><span class="lang-flag">🇺🇬</span><span class="lang-text">EN</span><i class="fas fa-chevron-down"></i></div>
+                <div class="action-link" onclick="navigateTo('dashboard')">
+                    <span class="action-label">Hello, <span id="greetingUser">Sign in</span></span>
+                    <strong class="action-title">Account &amp; Lists</strong>
+                </div>
+                <div class="action-link" onclick="navigateTo('dashboard')">
+                    <span class="action-label">Returns</span>
+                    <strong class="action-title">&amp; Orders</strong>
+                </div>
+                <div class="cart-btn" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count" id="cartCount">0</span>
+                    <span class="cart-label">Cart</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECONDARY NAV -->
+    <nav class="nav-bar secondary-nav">
+        <div class="container">
+            <a class="all-menu" onclick="toggleSideMenu()"><i class="fas fa-bars"></i> All</a>
+            <a onclick="navigateToService('alexa')">Alexa for Shopping</a>
+            <a onclick="navigateToService('prime')">Prime Video</a>
+            <a onclick="navigateToService('online')">Online's Amazon.com</a>
+            <a onclick="navigateToService('coupons')">Coupons</a>
+            <a onclick="navigateToService('customer-service')">Customer Service</a>
+            <a onclick="navigateToService('browsing')">Browsing History</a>
+            <a onclick="navigateToService('deals')">Today's Deals</a>
+            <a onclick="navigateToService('registry')">Registry</a>
+            <a onclick="navigateToService('buy-again')">Buy Again</a>
+            <a onclick="navigateToService('gift-cards')">Gift Cards</a>
+            <a onclick="navigateToService('sell')">Sell</a>
+        </div>
+    </nav>
+
+    <!-- SIDE MENU -->
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="toggleSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <h3><i class="fas fa-arrow-right"></i> Categories</h3>
+            <button class="close-menu" onclick="toggleSideMenu()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-section">
+            <div class="section-title">Shop by Category</div>
+            <div id="sideMenuCategories"></div>
+        </div>
+        <div class="menu-section" style="border-top:1px solid var(--border-color); margin-top:6px; padding-top:6px;">
+            <div class="menu-item" onclick="navigateTo('dashboard'); toggleSideMenu();"><span class="icon"><i class="fas fa-user"></i></span><span class="label">My Account</span></div>
+            <div class="menu-item" onclick="navigateTo('dashboard'); toggleSideMenu();"><span class="icon"><i class="fas fa-store"></i></span><span class="label">Vendor Dashboard</span></div>
+            <div class="menu-item" onclick="navigateTo('consultants'); toggleSideMenu();"><span class="icon"><i class="fas fa-user-md"></i></span><span class="label">Consultants</span></div>
+            <div class="menu-item" onclick="navigateTo('finance'); toggleSideMenu();"><span class="icon"><i class="fas fa-coins"></i></span><span class="label">Finance</span></div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <!-- HOME -->
+        <section class="page-section active" id="section-home">
+            <div class="banner-carousel" id="bannerCarousel">
+                <div class="banner-slides" id="bannerSlides"></div>
+                <button class="banner-btn prev" onclick="moveBanner(-1)">❮</button>
+                <button class="banner-btn next" onclick="moveBanner(1)">❯</button>
+                <div class="banner-dots" id="bannerDots"></div>
+            </div>
+            <div class="flash-sales" id="flashSales">
+                <div class="flash-header">
+                    <h2><i class="fas fa-bolt" style="color:var(--danger);"></i> Flash Sales</h2>
+                    <div class="countdown-timer" id="flashTimer">
+                        <span id="flashDays">00</span>d <span id="flashHours">00</span>h <span id="flashMins">00</span>m <span id="flashSecs">00</span>s
+                    </div>
+                </div>
+                <div class="product-grid" id="flashProductGrid"></div>
+            </div>
+            <div class="product-section deals-section">
+                <div class="section-header"><h2>🔥 Today's Deals</h2><a onclick="navigateTo('marketplace')">See all →</a></div>
+                <div class="product-grid" id="dealsProductGrid"></div>
+            </div>
+            <div class="category-grid" id="categoryGrid"></div>
+            <div id="bestSellersByCategory"></div>
+            <div class="product-section featured-section">
+                <div class="section-header"><h2>⭐ Featured Products</h2><a onclick="navigateTo('marketplace')">See all →</a></div>
+                <div class="product-grid" id="featuredProductGrid"></div>
+            </div>
+            <div class="product-section">
+                <div class="section-header"><h2>🏆 Top Sellers</h2><a onclick="navigateTo('marketplace')">See more →</a></div>
+                <div class="product-grid" id="topSellersGrid"></div>
+            </div>
+            <div class="consultant-showcase">
+                <div class="section-header"><h2><i class="fas fa-user-md" style="color:var(--primary);"></i> Our Agri-Experts</h2><a onclick="navigateTo('consultants')">View all →</a></div>
+                <div class="consultant-mini-grid" id="consultantMiniGrid"></div>
+            </div>
+            <div class="consultant-showcase" style="margin-top:0;">
+                <div class="section-header"><h2><i class="fas fa-university" style="color:var(--primary);"></i> Financial Partners</h2><a onclick="navigateTo('finance')">View all →</a></div>
+                <div class="consultant-mini-grid" id="financialMiniGrid"></div>
+            </div>
+            <div class="advert-feed" id="advertFeed"></div>
+            <div class="services-showcase" id="servicesShowcase"></div>
+        </section>
+
+        <!-- MARKETPLACE -->
+        <section class="page-section" id="section-marketplace">
+            <div class="product-section">
+                <div class="section-header"><h2>🛒 All Products</h2><div style="display:flex; gap:6px; flex-wrap:wrap;"><select id="filterCategory" onchange="filterProducts()" style="padding:4px 10px; border-radius:4px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary); font-size:0.8rem;"><option value="all">All Categories</option></select><input type="text" id="marketSearch" placeholder="Search..." oninput="filterProducts()" style="padding:4px 10px; border-radius:4px; border:1px solid var(--border-color); background:var(--input-bg); color:var(--text-primary); width:130px; font-size:0.8rem;" /></div></div>
+                <div class="product-grid" id="productGrid"></div>
+            </div>
+        </section>
+
+        <!-- PRODUCT DETAIL -->
+        <section class="page-section" id="section-productDetail">
+            <div id="productDetailContainer"></div>
+            <button class="btn-primary" style="margin-top:12px; padding:8px 20px; background:var(--primary); color:#111; border-radius:6px; font-weight:600;" onclick="navigateTo('marketplace')"><i class="fas fa-arrow-left"></i> Back to Products</button>
+        </section>
+
+        <!-- SERVICE PAGE -->
+        <section class="page-section" id="section-service">
+            <div id="serviceContent"></div>
+            <button class="btn-primary" style="margin-top:16px; padding:8px 20px; background:var(--primary); color:#111; border-radius:6px; font-weight:600;" onclick="navigateTo('home')"><i class="fas fa-arrow-left"></i> Back to Home</button>
+        </section>
+
+        <!-- CONSULTANTS FULL -->
+        <section class="page-section" id="section-consultants">
+            <div class="text-center" style="margin:14px 0;"><span class="badge-tag">Advisory</span><h2 class="section-title">Meet Our Agri-Experts</h2><p class="section-subtitle">Get personalized advice from certified consultants.</p></div>
+            <div class="consultant-grid" id="consultantFullGrid"></div>
+        </section>
+
+        <!-- FINANCE FULL -->
+        <section class="page-section" id="section-finance">
+            <div class="text-center" style="margin:14px 0;"><span class="badge-tag">Financial Services</span><h2 class="section-title">Smart Money for Your Farm</h2><p class="section-subtitle">Flexible financing, insurance, and savings.</p></div>
+            <div class="finance-grid" id="financeFullGrid"></div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section class="page-section" id="section-dashboard">
+            <div style="margin:14px 0;"><span class="badge-tag" id="dashRoleBadge">Dashboard</span><h2 class="section-title" id="dashTitle">My Dashboard</h2></div>
+            <div class="dashboard-grid">
+                <div class="dashboard-sidebar" id="dashSidebar">
+                    <div class="dash-user"><div class="avatar"><i class="fas fa-user-circle"></i></div><h4 id="dashUserName">Guest</h4><div class="role" id="dashUserRole">Customer</div><div id="dashStatusBadge"></div></div>
+                    <div id="dashNavItems"></div>
+                </div>
+                <div class="dashboard-content" id="dashContent"></div>
+            </div>
+        </section>
+
+        <!-- CHECKOUT -->
+        <section class="page-section" id="section-checkout">
+            <div class="checkout-grid">
+                <div class="checkout-left">
+                    <div class="checkout-card"><div class="card-header"><h3><i class="fas fa-map-pin"></i> Delivering to</h3><span class="edit-link" onclick="getLocation()"><i class="fas fa-location-dot"></i> Detect</span></div><div class="delivery-address" id="checkoutAddress"><div class="icon"><i class="fas fa-user-circle"></i></div><div class="address-details"><div class="name" id="checkoutName">Online Farmer</div><div class="line" id="checkoutLine">Kampala, Uganda</div><div class="line" style="font-size:0.7rem; color:var(--text-light);"><i class="fas fa-phone"></i> +256 700 123 456</div></div></div></div>
+                    <div class="checkout-card"><div class="card-header"><h3><i class="fas fa-ticket-alt"></i> Coupon Code</h3></div><div style="display:flex; gap:8px; flex-wrap:wrap;"><input type="text" id="couponInput" placeholder="Enter coupon code" style="flex:1; padding:8px 12px; border:1.5px solid var(--border-color); border-radius:6px; background:var(--input-bg); color:var(--text-primary);" /><button class="btn-sm primary" onclick="applyCoupon()" style="padding:8px 16px; background:var(--primary); color:#111; border-radius:6px; font-weight:600;">Apply</button></div><div id="couponMessage" style="margin-top:6px; font-size:0.8rem;"></div></div>
+                    <div class="checkout-card"><div class="card-header"><h3><i class="fas fa-credit-card"></i> Payment</h3><span class="edit-link" onclick="openFlutterwaveModal()">Pay with Flutterwave</span></div><div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;"><span style="background:var(--bg-body); padding:3px 10px; border-radius:12px; font-size:0.7rem;"><i class="fas fa-mobile-alt"></i> Mobile Money</span><span style="background:var(--bg-body); padding:3px 10px; border-radius:12px; font-size:0.7rem;"><i class="fas fa-university"></i> Bank</span><span style="background:var(--bg-body); padding:3px 10px; border-radius:12px; font-size:0.7rem;"><i class="fas fa-credit-card"></i> Smartcards</span></div><button class="btn-primary" style="padding:8px 20px; background:var(--primary); color:#111; border-radius:6px; font-weight:600; width:100%;" onclick="openFlutterwaveModal()"><i class="fas fa-credit-card"></i> Pay with Flutterwave</button></div>
+                </div>
+                <div class="order-summary">
+                    <div class="summary-card"><h3><i class="fas fa-shopping-cart"></i> Your Items</h3><div id="checkoutItems"></div><div class="order-totals" id="checkoutTotals"></div><button class="btn-place-order" onclick="openFlutterwaveModal()"><i class="fas fa-lock"></i> Place Order</button><div style="display:flex; justify-content:center; gap:10px; margin-top:8px; font-size:0.65rem; color:var(--text-muted);"><i class="fas fa-lock"></i> Secure <span>|</span><i class="fas fa-shield-alt"></i> Protected <span>|</span><i class="fas fa-undo-alt"></i> Returns</div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DELIVERY TRACKING -->
+        <section class="page-section" id="section-deliveryTracking">
+            <div class="delivery-tracking-page">
+                <h2><i class="fas fa-map-marked-alt"></i> Order Tracking</h2>
+                <div id="trackingMapContainer"></div>
+                <button class="btn-primary" onclick="navigateTo('home')">Back to Home</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="header"><h3><i class="fas fa-shopping-cart"></i> Cart</h3><button class="close" onclick="toggleCart()"><i class="fas fa-times"></i></button></div>
+        <div class="items" id="cartItemsSide"></div>
+        <div class="footer"><div class="total"><span>Subtotal</span><span id="cartTotalSide">₦0</span></div><button class="checkout-btn" onclick="checkout()"><i class="fas fa-lock"></i> Checkout</button></div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="authModal"><div class="modal"><button class="close-modal" onclick="closeModal('authModal')"><i class="fas fa-times"></i></button><h3 id="authModalTitle"><i class="fas fa-user-circle"></i> Sign In</h3><p class="sub" id="authModalSub">Welcome back! Sign in to your account.</p><form id="authForm" onsubmit="handleAuth(event)"><div id="authFields"><div class="form-group" id="signupNameGroup" style="display:none;"><label>Full Name</label><input type="text" id="authName" placeholder="e.g. Adebayo Ogunlesi" /></div><div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="farmer@example.com" required /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="authPhone" placeholder="+256 700 123 456" /></div><div class="form-group"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••" required minlength="4" /></div><div class="form-group" id="signupRoleGroup" style="display:none;"><label>I want to register as</label><select id="authRole"><option value="customer">Customer</option><option value="vendor">Farmer / Vendor</option><option value="consultant">Consultant</option><option value="financial">Financial Institution</option><option value="delivery">Delivery Partner</option></select></div></div><button type="submit" class="btn-primary" id="authSubmitBtn">Sign In</button></form><div class="switch-link"><span id="authSwitchText">Don't have an account?</span><a id="authSwitchLink">Create one</a></div></div></div>
+
+    <div class="modal-overlay" id="otpModal"><div class="modal"><button class="close-modal" onclick="closeModal('otpModal')"><i class="fas fa-times"></i></button><h3><i class="fas fa-shield-alt"></i> Verify Your Identity</h3><p class="sub">We've sent a 6-digit code to <span id="otpTarget">your phone and email</span>.</p><div class="otp-row" id="otpInputs"><input type="text" maxlength="1" class="otp-digit" /><input type="text" maxlength="1" class="otp-digit" /><input type="text" maxlength="1" class="otp-digit" /><input type="text" maxlength="1" class="otp-digit" /><input type="text" maxlength="1" class="otp-digit" /><input type="text" maxlength="1" class="otp-digit" /></div><button class="btn-primary" onclick="verifyOtp()"><i class="fas fa-check"></i> Verify</button><p style="text-align:center; margin-top:10px; font-size:0.8rem; color:var(--text-muted);"><a onclick="resendOtp()" style="color:var(--primary-dark-orange); cursor:pointer;">Resend code</a></p></div></div>
+
+    <div class="modal-overlay" id="flutterwaveModal"><div class="modal"><button class="close-modal" onclick="closeModal('flutterwaveModal')"><i class="fas fa-times"></i></button><h3><i class="fas fa-credit-card"></i> Flutterwave Payment</h3><p class="sub">Choose your payment method.</p><div class="payment-option-group"><div class="pay-option active" data-method="mobile" onclick="selectPayMethod(this,'mobile')"><div class="pay-icon"><i class="fas fa-mobile-alt"></i></div><div class="pay-info"><div class="pay-name">Mobile Money</div><div class="pay-desc">MTN, Airtel, Vodafone, Tigo</div></div></div><div class="pay-option" data-method="bank" onclick="selectPayMethod(this,'bank')"><div class="pay-icon"><i class="fas fa-university"></i></div><div class="pay-info"><div class="pay-name">Bank Transfer</div><div class="pay-desc">Direct bank transfer</div></div></div><div class="pay-option" data-method="card" onclick="selectPayMethod(this,'card')"><div class="pay-icon"><i class="fas fa-credit-card"></i></div><div class="pay-info"><div class="pay-name">Smartcards</div><div class="pay-desc">Visa, Mastercard, Amex</div></div></div></div><div id="flutterwaveForm"><div id="mobileForm"><div class="form-group"><label>Phone Number</label><input type="text" id="mobilePhone" placeholder="256700123456" /></div><div class="form-group"><label>Network</label><select id="mobileNetwork"><option>MTN</option><option>Airtel</option><option>Vodafone</option><option>Tigo</option></select></div></div><div id="bankForm" style="display:none;"><div class="form-group"><label>Bank</label><select id="bankName"><option>Stanbic</option><option>Centenary</option><option>DFCU</option><option>Equity</option><option>KCB</option></select></div><div class="form-group"><label>Account Number</label><input type="text" id="bankAccount" placeholder="Enter account number" /></div></div><div id="cardForm" style="display:none;"><div class="form-group"><label>Card Number</label><input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" /></div><div class="form-group"><label>Expiry</label><input type="text" id="cardExpiry" placeholder="MM / YY" /></div><div class="form-group"><label>CVV</label><input type="text" id="cardCvv" placeholder="•••" maxlength="4" /></div><div class="form-group"><label>Cardholder Name</label><input type="text" id="cardName" placeholder="Full name" /></div></div><button class="btn-pay" onclick="processPayment()"><i class="fas fa-lock"></i> Pay Now</button></div></div></div>
+
+    <div class="modal-overlay" id="vendorSignupModal"><div class="modal"><button class="close-modal" onclick="closeModal('vendorSignupModal')"><i class="fas fa-times"></i></button><h3><i class="fas fa-store"></i> Become a Vendor</h3><p class="sub">Register your farm or business on Smart Farmers.</p><form id="vendorSignupForm" onsubmit="submitVendorSignup(event)"><div class="form-group"><label>Business Name</label><input type="text" id="vendorBizName" required placeholder="e.g. Green Valley Farms" /></div><div class="form-group"><label>Store Name (displayed on your products)</label><input type="text" id="vendorStoreName" required placeholder="e.g. Green Valley Store" /></div><div class="form-group"><label>What types of goods do you sell?</label><select id="vendorGoodsTypes" multiple style="height:80px; width:100%; padding:6px; border:1.5px solid var(--border-color); border-radius:6px; background:var(--input-bg); color:var(--text-primary);"><option value="Seeds">Seeds</option><option value="Fertilizers">Fertilizers</option><option value="Crop Protection">Crop Protection</option><option value="Tools">Tools</option><option value="Livestock">Livestock</option><option value="Harvest">Harvest</option></select><p style="font-size:0.7rem; color:var(--text-muted);">Hold Ctrl (or Cmd) to select multiple</p></div><div class="form-group"><label>Description</label><textarea id="vendorBizDesc" placeholder="Tell us about your farm or business..."></textarea></div><div class="form-group"><label>Location</label><input type="text" id="vendorBizLocation" placeholder="e.g. Kampala, Uganda" /></div><div class="form-group"><label>Phone Number</label><input type="text" id="vendorBizPhone" placeholder="+256 700 123 456" /></div><div class="form-group"><label>Email</label><input type="email" id="vendorBizEmail" placeholder="vendor@example.com" /></div><div class="form-group"><label>Commission Rate (%) – set by admin</label><input type="number" id="vendorCommission" value="5" step="0.5" min="0" max="100" readonly style="background:var(--bg-body);" /></div><button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit for Approval</button></form></div></div>
+
+    <div class="modal-overlay" id="consultationModal"><div class="modal" style="max-width:600px;"><button class="close-modal" onclick="closeModal('consultationModal')"><i class="fas fa-times"></i></button><h3 id="consultationModalTitle"><i class="fas fa-comments"></i> Consultation Request</h3><p class="sub">Fill in your details and describe what you need.</p><form id="consultationForm" onsubmit="submitConsultationRequest(event)"><input type="hidden" id="consultationType" /><input type="hidden" id="consultationTargetId" /><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><div class="form-group"><label>Your Full Name</label><input type="text" id="cons_fullName" required placeholder="e.g. John Muwonge" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="cons_phone" required placeholder="+256 700 123 456" /></div></div><div class="form-group"><label>Email Address</label><input type="email" id="cons_email" required placeholder="farmer@example.com" /></div><div class="form-group"><label>Location / District</label><input type="text" id="cons_location" placeholder="e.g. Kampala, Uganda" /></div><div class="form-group"><label>Type of Inquiry</label><select id="cons_inquiryType" required><option value="">Select one</option><option value="crop-disease">Crop Disease / Pest Issue</option><option value="soil-health">Soil Health & Fertility</option><option value="irrigation">Irrigation & Water Management</option><option value="livestock">Livestock Management</option><option value="loan">Loan / Financing Request</option><option value="insurance">Crop Insurance Inquiry</option><option value="equipment">Equipment Leasing</option><option value="investment">Farm Investment Advice</option><option value="other">Other</option></select></div><div class="form-group"><label>Brief Description of Your Issue / Request</label><textarea id="cons_description" rows="4" required placeholder="Describe what you need help with..."></textarea></div><div class="form-group"><label>Preferred Contact Method</label><select id="cons_contactMethod"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="email">Email</option><option value="in-person">In-Person Visit</option></select></div><button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Request</button></form></div></div>
+
+    <div class="modal-overlay" id="deliveryRegModal"><div class="modal" style="max-width:600px;"><button class="close-modal" onclick="closeModal('deliveryRegModal')"><i class="fas fa-times"></i></button><h3><i class="fas fa-truck"></i> Register as Delivery Partner</h3><p class="sub">Provide your details and vehicle information for verification.</p><form id="deliveryRegForm" onsubmit="submitDeliveryRegistration(event)"><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><div class="form-group"><label>Full Name</label><input type="text" id="deliveryName" required placeholder="e.g. John Doe" /></div><div class="form-group"><label>Phone Number</label><input type="tel" id="deliveryPhone" required placeholder="+256 700 123 456" /></div></div><div class="form-group"><label>Email Address</label><input type="email" id="deliveryEmail" required placeholder="delivery@example.com" /></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><div class="form-group"><label>Vehicle Type</label><select id="deliveryVehicleType" required><option value="">Select</option><option value="Motorcycle">Motorcycle</option><option value="Car">Car</option><option value="Van">Van</option><option value="Truck">Truck</option><option value="Bicycle">Bicycle</option><option value="Boda">Boda</option></select></div><div class="form-group"><label>Vehicle Model</label><input type="text" id="deliveryVehicleModel" placeholder="e.g. Toyota Hiace" /></div></div><div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><div class="form-group"><label>License Number</label><input type="text" id="deliveryLicense" required placeholder="e.g. DL12345" /></div><div class="form-group"><label>Driving Permit Number</label><input type="text" id="deliveryPermit" required placeholder="e.g. DP67890" /></div></div><div class="form-group"><label>National ID Number</label><input type="text" id="deliveryNationalId" required placeholder="e.g. 1234567890" /></div><div class="form-group"><label>Upload Your Photo</label><input type="file" id="deliveryPhoto" accept="image/*" /></div><button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Registration</button></form></div></div>
+
+    <div class="modal-overlay" id="deliveryWithdrawModal"><div class="modal"><button class="close-modal" onclick="closeModal('deliveryWithdrawModal')"><i class="fas fa-times"></i></button><h3 id="deliveryWithdrawModalTitle"><i class="fas fa-hand-holding-usd"></i> Request Withdrawal</h3><p class="sub">Enter the amount and your transaction account details.</p><form id="deliveryWithdrawForm"><div class="form-group"><label>Amount (UGX)</label><input type="number" id="deliveryWithdrawAmount" required placeholder="Enter amount" min="1000" /></div><div class="form-group"><label>Account / Mobile Money Number</label><input type="text" id="deliveryWithdrawAccount" required placeholder="e.g. 0700123456 or bank account" /></div><div class="form-group"><label>Account Name</label><input type="text" id="deliveryWithdrawName" required placeholder="Full name on account" /></div><button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Submit Request</button></form></div></div>
+
+    <div class="modal-overlay" id="editAdvertModal"><div class="modal" style="max-width:500px;"><button class="close-modal" onclick="closeModal('editAdvertModal')"><i class="fas fa-times"></i></button><h3 id="editAdvertModalTitle"><i class="fas fa-edit"></i> Edit Advert</h3><p class="sub">Update the advert details. The owner will be notified of these changes.</p><form id="editAdvertForm" onsubmit="updateAdvert(event)"><div class="form-group"><label>Title</label><input type="text" id="editAdvertTitle" required /></div><div class="form-group"><label>Description</label><textarea id="editAdvertDesc" rows="3"></textarea></div><div class="form-group"><label>Price / Rate</label><input type="text" id="editAdvertPrice" placeholder="e.g. UGX 50,000 or Contact for pricing" /></div><button type="submit" class="btn-primary"><i class="fas fa-save"></i> Update Advert</button></form></div></div>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- WHATSAPP & CALL -->
+    <a href="https://wa.me/256790901537" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+    <a href="tel:+256790901537" class="call-float"><i class="fas fa-phone"></i></a>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="grid">
+                <div><h4><i class="fas fa-seedling"></i> SmartFarmers</h4><ul><li><a>About</a></li><li><a>Careers</a></li><li><a>Press</a></li></ul></div>
+                <div><h4>Shop</h4><ul><li><a onclick="navigateTo('marketplace')">Seeds</a></li><li><a onclick="navigateTo('marketplace')">Fertilizers</a></li><li><a onclick="navigateTo('marketplace')">Crop Protection</a></li><li><a onclick="navigateTo('marketplace')">Tools</a></li></ul></div>
+                <div><h4>Services</h4><ul><li><a onclick="navigateTo('consultants')">Consultants</a></li><li><a onclick="navigateTo('finance')">Finance</a></li><li><a>Insurance</a></li></ul></div>
+                <div><h4>Help</h4><ul><li><a>Contact</a></li><li><a>FAQ</a></li><li><a>Returns</a></li></ul></div>
+            </div>
+            <div class="bottom">&copy; 2026 SmartFarmers. All rights reserved.<span style="display:block; margin-top:2px; font-size:0.65rem;">Email: <a href="mailto:kajoram256@gmail.com" style="color:var(--primary);">kajoram256@gmail.com</a> &bull; Support: <a href="tel:+256790901537" style="color:var(--primary);">+256 790 901 537</a></span><span style="display:block; font-size:0.65rem;">Currency: <span id="footerCurrency">UGX</span> • 1 USD = <span id="exchangeRate">3,700</span> UGX</span></div>
+        </div>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/vendor.js"></script>
+    <script src="js/customer.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/payments.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/coupons.js"></script>
+    <script src="js/delivery.js"></script>
+</body>
+</html>
